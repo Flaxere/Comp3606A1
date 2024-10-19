@@ -11,6 +11,8 @@ import android.net.wifi.p2p.WifiP2pManager
 import android.net.wifi.p2p.WifiP2pManager.ActionListener
 import android.os.Build
 import android.util.Log
+import android.widget.LinearLayout
+import jaredDeFour.example.comp3606a1.R
 
 class WifiDirectManager(private val manager: WifiP2pManager,
                         private val channel: WifiP2pManager.Channel,
@@ -50,12 +52,15 @@ class WifiDirectManager(private val manager: WifiP2pManager,
                     Build.VERSION.SDK_INT >= 33 -> intent.getParcelableExtra(WifiP2pManager.EXTRA_WIFI_P2P_DEVICE, WifiP2pDevice::class.java)!!
                     else -> @Suppress("DEPRECATION") intent.getParcelableExtra(WifiP2pManager.EXTRA_WIFI_P2P_DEVICE)!!
                 }
+
+
                 Log.e("WFDManager","The device status has changed")
 
                 iFaceImpl.onDeviceStatusChanged(thisDevice)
             }
         }
     }
+
 
     @SuppressLint("MissingPermission")
     fun createGroup(){

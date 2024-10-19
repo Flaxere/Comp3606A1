@@ -22,21 +22,21 @@ class Server(private val iFaceImpl: NetworkMessageInterface) {
     private val svrSocket: ServerSocket = ServerSocket(PORT, 0, InetAddress.getByName("192.168.49.1"))
     private val clientMap: HashMap<String, Socket> = HashMap()
 
-    init {
-        thread{
-            while(true){
-                try{
-                    val clientConnectionSocket = svrSocket.accept()
-                    Log.e("SERVER", "The server has accepted a connection: ")
-                    handleSocket(clientConnectionSocket)
-
-                }catch (e: Exception){
-                    Log.e("SERVER", "An error has occurred in the server!")
-                    e.printStackTrace()
-                }
-            }
-        }
-    }
+//    init {
+//        thread{
+//            while(true){
+//                try{
+//                    val clientConnectionSocket = svrSocket.accept()
+//                    Log.e("SERVER", "The server has accepted a connection: ")
+//                    handleSocket(clientConnectionSocket)
+//
+//                }catch (e: Exception){
+//                    Log.e("SERVER", "An error has occurred in the server!")
+//                    e.printStackTrace()
+//                }
+//            }
+//        }
+//    }
 
 
     private fun handleSocket(socket: Socket){

@@ -1,3 +1,53 @@
 <resources>
     <string name="app_name">COMP3606A1</string>
+    <string name="class_network">Class Network: %1$s</string>
+    <string-array name="studentids">
+        <item>816117992</item>
+        <item>816035980</item>
+        <item>816036526</item>
+        <item>816036717</item>
+        <item>816032089</item>
+        <item>816012345</item>
+        <item>816777989</item>
+        <item>816117992</item>
+        <item>816035980</item>
+        <item>816036526</item>
+        <item>816036717</item>
+        <item>816032089</item>
+        <item>816012345</item>
+        <item>816777989</item>
+        <item>816117992</item>
+        <item>816035980</item>
+        <item>816036526</item>
+        <item>816036717</item>
+        <item>816032089</item>
+        <item>816012345</item>
+        <item>816777989</item>
+        <item>816117992</item>
+        <item>816035980</item>
+        <item>816036526</item>
+        <item>816036717</item>
+        <item>816032089</item>
+        <item>816012345</item>
+        <item>816777989</item>
+    </string-array>
+    <string-array name="sampleChat">
+        <item>Hey</item>
+        <item>Whatsup</item>
+        <item>Sanjay and Craig</item>
+        <item>Sanjay and SAJDAH?</item>
+        <item>What are you doing here?</item>
+        <item>The better question is what are you doing with Sanjay?</item>
+        <item>Its.. not what it looks like</item>
+        <item>No, it cannot be ANYTHING other than what it looks like</item>
+        <item>Jared, wait… please</item>
+        <item>No, no no no NO, i refuse to wait</item>
+        <item>It was a mistake</item>
+        <item>THIS is a mistake??? haha, what a fool ive been</item>
+        <item>Jared please forgive me</item>
+        <item>No, i never can</item>
+        <item>Wait please, i promise to never sniff craigs farts with sanjay ever again I really do</item>
+        <item>You sick disgusting freak, get AWAY from me</item>
+
+    </string-array>
 </resources>
