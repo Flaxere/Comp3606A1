@@ -8,6 +8,7 @@ import android.net.wifi.p2p.WifiP2pManager
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
@@ -20,11 +21,12 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import jaredDeFour.example.comp3606a1.StudentList.StudentListAdapter
 import jaredDeFour.example.comp3606a1.chatlist.ChatListAdapter
-import jaredDeFour.example.comp3606a1.network.Client
+//import jaredDeFour.example.comp3606a1.network.Client
 import jaredDeFour.example.comp3606a1.network.NetworkMessageInterface
 import jaredDeFour.example.comp3606a1.network.Server
 import jaredDeFour.example.comp3606a1.wifidirect.WifiDirectInterface
 import jaredDeFour.example.comp3606a1.wifidirect.WifiDirectManager
+import jaredDeFour.example.comp3606a1.ContentModel
 
 class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, NetworkMessageInterface {
 
@@ -40,17 +42,16 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, NetworkM
     private var wfdAdapterEnabled = false
     private var studentListAdapter:StudentListAdapter? = null
     private var chatListAdapter: ChatListAdapter? = null
-
-
     private var wfdHasConnection = false
     private var hasDevices = false
     private var server: Server? = null
-    private var client: Client? = null
+//    private var client: Client? = null
     private var deviceIp: String = ""
     private var groupCreated: Boolean = false
     private var studentList:MutableList<Student> = mutableListOf()
 //    private var student_chat: MutableList<Chat> = mutableListOf()
     private var studentChat: MutableMap<String, Chat> = mutableMapOf()
+    private var numStudents: Int = 0
 
 
 
@@ -64,14 +65,16 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, NetworkM
             insets
         }
 
-        val recyclerView : RecyclerView =findViewById(R.id.student_list)
-        Log.e("STUDENTLIST","$studentChat")
         setUpStudents()
-        studentListAdapter = StudentListAdapter(this,studentList)
-        recyclerView.adapter = studentListAdapter
-        recyclerView.layoutManager = LinearLayoutManager(this)
-        sampleChat()
-        Log.e("STUDENTLIST","$studentChat")
+        val studentListingsView : RecyclerView =findViewById(R.id.student_list)
+
+//        studentListAdapter = StudentListAdapter(this,this,studentList)
+//        recyclerView.adapter = studentListAdapter
+//        recyclerView.layoutManager = LinearLayoutManager(this)
+          studentListAdapter = StudentListAdapter(this,this,studentList)
+          studentListingsView.adapter = studentListAdapter
+          studentListingsView.layoutManager = LinearLayoutManager(this)
+//        sampleChat()
 
 
 
@@ -86,50 +89,74 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, NetworkM
 
         for (s in students){
             val m: MutableList<ContentModel> = mutableListOf()
-            studentList.add(Student(s))
+//            studentList.add(Student(s))
             studentChat[s] = Chat(m)
         }
 
     }
 
+    fun addStudent(studentID: String){
+        val students = resources.getStringArray(R.array.studentids)
+        for(s in students){
+            if(s==studentID){
+                studentListAdapter?.addItemToEnd(Student(studentID))
+//                numStudents++
+                Log.e("SUCCESS","THE STUDENT SHOULD BE REFLECTED IN THE ATTENDEES")
+                break
+            }
+        }
+
+    }
+    fun getPosition(studentID:String): Int{
+        var position: Int = 0
+        for (s in studentList){
+            if(s.studentID==studentID)
+                return position
+            position++
+        }
+        return -1
+    }
+
+    fun removeStudent(studentID: String){
+        val position = getPosition(studentID)
+        studentListAdapter?.removeFromList(position)
+    }
 
     fun openChat(studentID: String){
-        Log.e("STUDENTLIST","$studentChat")
         val chatHistory = studentChat[studentID]
 
 
         if (chatHistory != null) {
-            Log.e("TEST","IT REACHES")
 
-            chatListAdapter = ChatListAdapter(this,chatHistory.chatHistory)
+            chatListAdapter = ChatListAdapter(this,chatHistory.chatHistory,studentID)
             val studentChatList: RecyclerView = findViewById(R.id.message_history)
             studentChatList.adapter = chatListAdapter
             studentChatList.layoutManager = LinearLayoutManager(this)
         }
     }
-    private fun sampleChat(){
-        val students = resources.getStringArray(R.array.sampleChat)
-        var list: MutableList<ContentModel> = mutableListOf()
-        var chat: Chat = Chat(list)
-        var count: Int = 0
-
-        for( s in students){
-            if(count %5 == 0)
-                studentChat["816117992"]?.chatHistory?.add(ContentModel(s,"192.168.49.1"))
-            if(count %2 == 0)
-                 chat.chatHistory.add(ContentModel(s,"1"))
-            else
-                chat.chatHistory.add(ContentModel(s,"192.168.49.1"))
-            count++
-
-
-        }
-        chatListAdapter = ChatListAdapter(this,chat.chatHistory)
-        val studentChatList: RecyclerView = findViewById(R.id.message_history)
-        studentChatList.adapter = chatListAdapter
-        studentChatList.layoutManager = LinearLayoutManager(this)
-
-    }
+//    private fun sampleChat(){
+//        val students = resources.getStringArray(R.array.sampleChat)
+//        var list: MutableList<ContentModel> = mutableListOf()
+//        var chat: Chat = Chat(list)
+//        var count: Int = 0
+//
+//        for( s in students){
+//            if(count %5 == 0)
+//                studentChat["816117992"]?.chatHistory?.add(ContentModel(s,"192.168.49.1"))
+//            if(count %2 == 0)
+//                 chat.chatHistory.add(ContentModel(s,"1"))
+//            else
+//                chat.chatHistory.add(ContentModel(s,"192.168.49.1"))
+//            count++
+//
+//
+//        }
+//        chatListAdapter = ChatListAdapter(this,chat.chatHistory,"00000")
+//        val studentChatList: RecyclerView = findViewById(R.id.message_history)
+//        studentChatList.adapter = chatListAdapter
+//        studentChatList.layoutManager = LinearLayoutManager(this)
+//
+//    }
 //    private fun setUpChat(){
 //        chatListAdapter = ChatListAdapter(this,student_chat[0].chatHistory)
 //        val studentChatList: RecyclerView = findViewById(R.id.student_chat)
@@ -197,7 +224,9 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, NetworkM
     fun endClass(view: View){
         wfdManager?.disconnect()
         groupCreated = false
+//        close()
         updateUI()
+
     }
 
     private fun updateUI(){
@@ -238,23 +267,53 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, NetworkM
 
         if (groupInfo == null){
             server?.close()
-            client?.close()
+//            client?.close()
         } else if (groupInfo.isGroupOwner && server == null){
-            server = Server(this)
+            server = Server(this,resources.getStringArray(R.array.studentids))
             deviceIp = "192.168.49.1"
         }
         updateUI()
     }
 
-    override fun onContent(content: ContentModel) {
-        TODO("Not yet implemented")
+    override fun onContent(content: ContentModel,studentID: String) {
+        runOnUiThread{
+            if(studentID == chatListAdapter?.getStudentID() ){
+                chatListAdapter?.addItemToEnd(content)
+            }else{
+                updateChat(content,studentID)
+            }
+        }
     }
+
+    override fun addToList(studentID: String) {
+        runOnUiThread {
+            addStudent(studentID)
+        }
+    }
+
+    fun updateTitle(studentID: String){
+        var current_chat: TextView = findViewById(R.id.current_chat)
+        current_chat.text = "Student Chat - $studentID"
+    }
+
+    override fun removeFromList(studentID: String) {
+        runOnUiThread {
+            removeStudent(studentID)
+        }
+    }
+
+    fun updateChat(content:ContentModel,studentID: String){
+        studentChat[studentID]?.chatHistory?.add((content))
+        var current_chat: TextView = findViewById(R.id.current_chat)
+        Log.e("NEWCHAT","${studentChat[studentID]?.chatHistory}")
+    }
+
 //    fun sendMessage(view: View) {
 //        val etMessage: EditText = findViewById(R.id.etMessage)
 //        val etString = etMessage.text.toString()
 //        val content = ContentModel(etString, deviceIp)
 //        etMessage.text.clear()
-//        client?.sendMessage(content)
+//        server?.sendMessage(content)
 //        chatListAdapter?.addItemToEnd(content)
 //
 //    }

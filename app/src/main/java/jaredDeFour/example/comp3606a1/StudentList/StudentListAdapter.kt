@@ -12,11 +12,12 @@ import androidx.recyclerview.widget.RecyclerView
 import jaredDeFour.example.comp3606a1.R
 import jaredDeFour.example.comp3606a1.Student
 import jaredDeFour.example.comp3606a1.CommunicationActivity
+import jaredDeFour.example.comp3606a1.ContentModel
 
-class StudentListAdapter(context: Context, var studentList:MutableList<Student>) : RecyclerView.Adapter<StudentListAdapter.ViewHolder>() {
+class StudentListAdapter(var comAct: CommunicationActivity, context: Context, var studentList:MutableList<Student>) : RecyclerView.Adapter<StudentListAdapter.ViewHolder>() {
 
 
-    class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView), View.OnClickListener{
+    class ViewHolder(var comAct: CommunicationActivity,itemView: View) : RecyclerView.ViewHolder(itemView), View.OnClickListener{
         lateinit var buttonClickListener: OnItemClickListener
         val studentView: TextView = itemView.findViewById(R.id.studentID)
         var button: Button = itemView.findViewById(R.id.questionButton)
@@ -26,8 +27,8 @@ class StudentListAdapter(context: Context, var studentList:MutableList<Student>)
 
         override fun onClick(view: View?) {
             val studentID: String = studentView.text.toString()
-            CommunicationActivity().openChat(studentID)
-            Log.e("StudentID", studentID)
+            comAct.openChat(studentID)
+            comAct.updateTitle(studentID)
         }
 
 
@@ -35,7 +36,7 @@ class StudentListAdapter(context: Context, var studentList:MutableList<Student>)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.studentinformation, parent, false)
-        return ViewHolder(view)
+        return ViewHolder(comAct,view)
 
 
     }
@@ -46,8 +47,21 @@ class StudentListAdapter(context: Context, var studentList:MutableList<Student>)
 
     }
 
+
     override fun getItemCount(): Int {
         return studentList.size
+    }
+
+    fun addItemToEnd(student: Student){
+        studentList.add(student)
+        notifyItemInserted(studentList.size)
+
+    }
+
+    fun removeFromList(position:Int){
+        studentList.removeAt(position)
+        notifyItemRemoved(position)
+
     }
 
 }
