@@ -43,6 +43,10 @@ class WifiDirectManager(private val manager: WifiP2pManager,
                     groupInfo = tmpGroupInfo
                     Log.e("WFDManager","The class has been started")
                     iFaceImpl.onGroupStatusChanged(groupInfo)
+                    val ssid = groupInfo?.networkName
+                    val pass = groupInfo?.passphrase
+                    iFaceImpl.setNetworkDetails(ssid,pass)
+
                 }
 
 
@@ -55,7 +59,6 @@ class WifiDirectManager(private val manager: WifiP2pManager,
 
 
                 Log.e("WFDManager","The device status has changed")
-
                 iFaceImpl.onDeviceStatusChanged(thisDevice)
             }
         }

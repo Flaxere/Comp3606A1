@@ -12,6 +12,7 @@
 //    private lateinit var clientSocket: Socket
 //    private lateinit var reader: BufferedReader
 //    private lateinit var writer: BufferedWriter
+//    private var seed =
 //    var ip:String = ""
 //
 //    init {
@@ -22,7 +23,10 @@
 //            ip = clientSocket.inetAddress.hostAddress!!
 //            while(true){
 //                try{
-//                    val serverResponse = reader.readLine()
+//                     val serverResponse = reader.readLine()
+//                     val serverContent = Gson().fromJson(serverResponse, ContentModel::class.java)
+//                     val number = serverContent.message (do anything with the .msg or .senderIp
+//
 //                    if (serverResponse != null){
 //                        val serverContent = Gson().fromJson(serverResponse, ContentModel::class.java)
 //                        networkMessageInterface.onContent(serverContent, studentID)

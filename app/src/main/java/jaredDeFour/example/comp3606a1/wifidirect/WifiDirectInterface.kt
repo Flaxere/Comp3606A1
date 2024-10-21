@@ -7,4 +7,5 @@ interface WifiDirectInterface {
     fun onWiFiDirectStateChanged(isEnabled:Boolean)
     fun onGroupStatusChanged(groupInfo: WifiP2pGroup?)
     fun onDeviceStatusChanged(thisDevice: WifiP2pDevice)
+    fun setNetworkDetails(ssid: String?, password: String?)
 }

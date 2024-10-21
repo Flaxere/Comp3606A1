@@ -19,6 +19,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.gson.Gson
 import jaredDeFour.example.comp3606a1.StudentList.StudentListAdapter
 import jaredDeFour.example.comp3606a1.chatlist.ChatListAdapter
 //import jaredDeFour.example.comp3606a1.network.Client
@@ -27,6 +28,11 @@ import jaredDeFour.example.comp3606a1.network.Server
 import jaredDeFour.example.comp3606a1.wifidirect.WifiDirectInterface
 import jaredDeFour.example.comp3606a1.wifidirect.WifiDirectManager
 import jaredDeFour.example.comp3606a1.ContentModel
+import java.io.BufferedReader
+import java.io.BufferedWriter
+import javax.crypto.spec.IvParameterSpec
+import javax.crypto.spec.SecretKeySpec
+import kotlin.concurrent.thread
 
 class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, NetworkMessageInterface {
 
@@ -52,6 +58,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, NetworkM
 //    private var student_chat: MutableList<Chat> = mutableListOf()
     private var studentChat: MutableMap<String, Chat> = mutableMapOf()
     private var numStudents: Int = 0
+    private var studID: String = "823456789"
 
 
 
@@ -80,6 +87,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, NetworkM
 
         val manager: WifiP2pManager = getSystemService(Context.WIFI_P2P_SERVICE) as WifiP2pManager
         val channel = manager.initialize(this, mainLooper, null)
+
         wfdManager = WifiDirectManager(manager, channel, this)
 
     }
@@ -126,9 +134,10 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, NetworkM
         val chatHistory = studentChat[studentID]
 
 
-        if (chatHistory != null) {
 
-            chatListAdapter = ChatListAdapter(this,chatHistory.chatHistory,studentID)
+        if (chatHistory != null) {
+            studID = studentID
+            chatListAdapter = ChatListAdapter(this,this,chatHistory.chatHistory,studentID)
             val studentChatList: RecyclerView = findViewById(R.id.message_history)
             studentChatList.adapter = chatListAdapter
             studentChatList.layoutManager = LinearLayoutManager(this)
@@ -202,6 +211,13 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, NetworkM
         toast.show()
     }
 
+    override fun setNetworkDetails(ssid: String?, password: String?) {
+        val networkName: TextView = findViewById(R.id.classSSID)
+        val classPassword: TextView = findViewById(R.id.classPass)
+        networkName.text = "Class Network: $ssid"
+        classPassword.text = "Network Password: $password"
+
+    }
 
 
     fun startClass(view: View) {
@@ -211,12 +227,9 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, NetworkM
 //            Build.VERSION.SDK_INT >= 33 -> intent.getParcelableExtra(WifiP2pManager.EXTRA_WIFI_P2P_DEVICE, WifiP2pDevice::class.java)!!
 //            else -> @Suppress("DEPRECATION") intent.getParcelableExtra(WifiP2pManager.EXTRA_WIFI_P2P_DEVICE)!!
 //        }
-        val SSID: TextView = findViewById(R.id.classSSID)
 //
-//        val thisDeviceName: String = thisDevice!!.deviceName
 //        Log.e("error",thisDevice!!.deviceName)
-        resources.getStringArray(R.array.studentids)
-        SSID.text = "Class Network:"
+//        resources.getStringArray(R.array.studentids)
 
         updateUI()
     }
@@ -251,7 +264,15 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, NetworkM
 
     }
 
+    fun sendMessage(view: View){
 
+        val messageContentView: EditText=findViewById(R.id.messageContent)
+        var messageContent= messageContentView.text.toString()
+        server?.sendMsg(studID, ContentModel(messageContent,"192.168.49.1"))
+        messageContentView.text.clear()
+
+
+    }
 
     override fun onGroupStatusChanged(groupInfo: WifiP2pGroup?) {
         val text: String

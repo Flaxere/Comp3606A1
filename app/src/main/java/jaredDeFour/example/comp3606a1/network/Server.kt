@@ -32,7 +32,8 @@ class Server(private val iFaceImpl: NetworkMessageInterface, val studentList: Ar
 
     private val svrSocket: ServerSocket = ServerSocket(PORT, 0, InetAddress.getByName("192.168.49.1"))
     private val clientMap: HashMap<String, Socket> = HashMap()
-    private val seedMap: HashMap<String, String> = HashMap()
+    private val ipMap: HashMap<String, String> = HashMap()
+    private val currentSocket:String = "NONE"
 
     init {
         thread{
@@ -61,25 +62,31 @@ class Server(private val iFaceImpl: NetworkMessageInterface, val studentList: Ar
                 val clientWriter = socket.outputStream.bufferedWriter()
                 var receivedJson: String?
 
-                fun sendMessage(content: ContentModel){
-                    thread {
 
-                        val contentAsStr:String = Gson().toJson(content)
+                fun sendMessage(content: ContentModel,aesK: SecretKeySpec, aesIv: IvParameterSpec){
+                    thread {
+                        val encryptedMessage = ContentModel(encryptMessage(content.message,aesK,aesIv),"192.168.49.1")
+                        val contentAsStr:String = Gson().toJson(encryptedMessage)
                         clientWriter.write("$contentAsStr\n")
                         clientWriter.flush()
                     }
                 }
-//
+
+                fun sendPlainMessage(content: ContentModel){
+                    val contentAsStr:String = Gson().toJson(content)
+                    clientWriter.write("$contentAsStr\n")
+                    clientWriter.flush()
+                }
+
                 try{
                     receivedJson = clientReader.readLine()
                     var clientContent = Gson().fromJson(receivedJson, ContentModel::class.java)
                     val num = generateRandNum()
-//                    val num = "816035980000000000000000000000000000000000000000000000000000000000000000000000000000000000"
-                    Log.e("NUMBER", "$num")
                     var response = ContentModel(num.toString(),clientContent.senderIp)
-                    var fResponse = Gson().toJson(response)
-                    clientWriter.write("$fResponse\n")
-                    clientWriter.flush()
+                    sendPlainMessage(response)
+//                    var fResponse = Gson().toJson(response)
+//                    clientWriter.write("$fResponse\n")
+//                    clientWriter.flush()
                     receivedJson = clientReader.readLine()
                     while(receivedJson == null)
                         receivedJson = clientReader.readLine()
@@ -90,10 +97,11 @@ class Server(private val iFaceImpl: NetworkMessageInterface, val studentList: Ar
                     val hashedSID = clientContent.message
                     val test = decryptMessage(hashedSID,aesK,aesIv)
                     if(test==num.toString()){
-                        response = ContentModel("ACK()",clientContent.senderIp)
-                        fResponse = Gson().toJson(response)
-                        clientWriter.write("$fResponse\n")
-                        clientWriter.flush()
+                        response = ContentModel("ACK",clientContent.senderIp)
+                        sendMessage(response,aesK,aesIv)
+//                        fResponse = Gson().toJson(response)
+//                        clientWriter.write("$fResponse\n")
+//                        clientWriter.flush()
 
                         receivedJson = clientReader.readLine()
                         while(receivedJson == null)
@@ -103,9 +111,11 @@ class Server(private val iFaceImpl: NetworkMessageInterface, val studentList: Ar
                         val studentID: String = decryptMessage(clientContent.message,aesK,aesIv)
                         Log.e("SIDDID", studentID)
                         if(isValidID(studentID)) {
+                            sendMessage(ContentModel("VALID","192.168.49.1"),aesK,aesIv)
                             Log.e("NUMBER3441", clientContent.message)
                             iFaceImpl.addToList(studentID)
                             Log.e("NUMBER3", clientContent.message)
+                            ipMap[studentID] = it
 //                            seedMap[studentID] = strongSeed'
                             while (socket.isConnected) {
                                 try {
@@ -119,11 +129,7 @@ class Server(private val iFaceImpl: NetworkMessageInterface, val studentList: Ar
                                             val tmpIp = clientContent.senderIp
                                             iFaceImpl.onContent(decryptedMsg,studentID)
                                         }
-//                                        val reversedContent = ContentModel(
-//                                            clientContent.message.reversed(),
-//                                            "192.168.49.1"
-//                                        )
-////
+
 //                                        val clientMessage =
 //                                            decryptMessage(clientContent.message, aesK, aesIv)
 //                                        val reversedContentStr = Gson().toJson(reversedContent)
@@ -140,7 +146,7 @@ class Server(private val iFaceImpl: NetworkMessageInterface, val studentList: Ar
                                     }
                                 } catch (e: Exception) {
                                     close()
-                                    iFaceImpl.removeFromList(studentID)
+//                                    iFaceImpl.removeFromList(studentID)
 
                         Log.e("SERVER", "An error has occurred with the client $it")
                         e.printStackTrace()
@@ -159,11 +165,20 @@ class Server(private val iFaceImpl: NetworkMessageInterface, val studentList: Ar
 
                             }
                             iFaceImpl.removeFromList(studentID)
+                            clientMap.remove(it)
+                            socket.close()
                         }else{
+                            sendMessage(ContentModel("INVALID","192.168.49.1"),aesK,aesIv)
                             Log.e("ERROR","This user does not belong in the class ")
+                            clientMap.remove(it)
+                            socket.close()
 //                            close()
                     }
+                    }else{
+                        response = ContentModel("NACK",clientContent.senderIp)
+                        sendMessage(response,aesK,aesIv)
                     }
+
 
 
 
@@ -172,6 +187,7 @@ class Server(private val iFaceImpl: NetworkMessageInterface, val studentList: Ar
 
                 } catch (e: Exception){
                     Log.e("SERVER", "An error has occurred with establishing the connection $it")
+                    socket.close()
                     e.printStackTrace()
                 }
 
@@ -186,6 +202,7 @@ class Server(private val iFaceImpl: NetworkMessageInterface, val studentList: Ar
     fun close(){
         svrSocket.close()
         clientMap.clear()
+
     }
 
 
@@ -206,14 +223,12 @@ class Server(private val iFaceImpl: NetworkMessageInterface, val studentList: Ar
 
 
     fun generateAESKey(seed: String): SecretKeySpec {
-        Log.e("FORYOUMRATTENTIONSEEKER",seed)
         val first32Chars = getFirstNChars(seed,32)
         val secretKey = SecretKeySpec(first32Chars.toByteArray(), "AES")
 
         return secretKey
     }
     fun generateIV(seed: String): IvParameterSpec {
-        Log.e("FORYOUMRATTENTIONSEEKER",seed)
         val first16Chars = getFirstNChars(seed, 16)
         return IvParameterSpec(first16Chars.toByteArray())
     }
@@ -227,6 +242,36 @@ class Server(private val iFaceImpl: NetworkMessageInterface, val studentList: Ar
 
         return String(decrypt)
 
+    }
+    fun sendMsg(studentID: String,content:ContentModel){
+
+        thread {
+            Log.e("Error","$clientMap")
+            Log.e("Error","$ipMap")
+            val socket = clientMap[ipMap[studentID]]
+            val clientWriter = socket?.outputStream?.bufferedWriter()
+            val encryptedMessage = ContentModel(encryptMessage(content.message,generateAESKey(studentID),generateIV(studentID)),"192.168.49.1")
+            val contentAsStr:String = Gson().toJson(encryptedMessage)
+            if (clientWriter != null) {
+                clientWriter.write("$contentAsStr\n")
+            }
+            if (clientWriter != null) {
+                clientWriter.flush()
+            }
+            iFaceImpl.addToList(studentID)
+        }
+
+
+    }
+    @OptIn(ExperimentalEncodingApi::class)
+    fun encryptMessage(plaintext: String, aesKey:SecretKey, aesIv: IvParameterSpec):String{
+        val plainTextByteArr = plaintext.toByteArray()
+
+        val cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING")
+        cipher.init(Cipher.ENCRYPT_MODE, aesKey, aesIv)
+
+        val encrypt = cipher.doFinal(plainTextByteArr)
+        return Base64.Default.encode(encrypt)
     }
 
     fun isValidID(studentID: String): Boolean{
