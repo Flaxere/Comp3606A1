@@ -1,6 +1,9 @@
 package jaredDeFour.example.comp3606a1.network
 
 import jaredDeFour.example.comp3606a1.ContentModel
+import java.io.BufferedWriter
+import javax.crypto.spec.IvParameterSpec
+import javax.crypto.spec.SecretKeySpec
 
 /// This [NetworkMessageInterface] acts as an interface.
 interface NetworkMessageInterface {

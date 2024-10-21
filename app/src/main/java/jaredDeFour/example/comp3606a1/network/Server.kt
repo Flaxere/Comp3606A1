@@ -130,17 +130,7 @@ class Server(private val iFaceImpl: NetworkMessageInterface, val studentList: Ar
                                             iFaceImpl.onContent(decryptedMsg,studentID)
                                         }
 
-//                                        val clientMessage =
-//                                            decryptMessage(clientContent.message, aesK, aesIv)
-//                                        val reversedContentStr = Gson().toJson(reversedContent)
-//                                        clientWriter.write("`$reversedContentStr\n")
-//                                        clientWriter.flush()
-
-                                        // To show the correct alignment of the items (on the server), I'd swap the IP that it came from the client
-                                        // This is some OP hax that gets the job done but is not the best way of getting it done.
-
-//                            clientContent.senderIp = reversedContent.senderIp
-//                            reversedContent.senderIp = tmpIp
+//
 
 
                                     }
@@ -250,7 +240,11 @@ class Server(private val iFaceImpl: NetworkMessageInterface, val studentList: Ar
             Log.e("Error","$ipMap")
             val socket = clientMap[ipMap[studentID]]
             val clientWriter = socket?.outputStream?.bufferedWriter()
-            val encryptedMessage = ContentModel(encryptMessage(content.message,generateAESKey(studentID),generateIV(studentID)),"192.168.49.1")
+            val strongSeed = hashStrSha256(studentID)
+            val aesK = generateAESKey(strongSeed)
+            val aesIV = generateIV(strongSeed)
+            val messageTransform = encryptMessage(content.message,aesK,aesIV)
+            val encryptedMessage = ContentModel(messageTransform,"192.168.49.1")
             val contentAsStr:String = Gson().toJson(encryptedMessage)
             if (clientWriter != null) {
                 clientWriter.write("$contentAsStr\n")
@@ -258,7 +252,7 @@ class Server(private val iFaceImpl: NetworkMessageInterface, val studentList: Ar
             if (clientWriter != null) {
                 clientWriter.flush()
             }
-            iFaceImpl.addToList(studentID)
+            iFaceImpl.onContent(content,studentID)
         }
 
 
@@ -277,7 +271,6 @@ class Server(private val iFaceImpl: NetworkMessageInterface, val studentList: Ar
     fun isValidID(studentID: String): Boolean{
         var valid: Boolean = false
         for(studID in studentList){
-            Log.e("STUDID",studentID)
             if(studID == studentID){
                 Log.e("VALID",studID)
                 valid = true

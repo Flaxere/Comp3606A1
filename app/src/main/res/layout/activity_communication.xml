@@ -153,19 +153,19 @@
             app:layout_constraintEnd_toEndOf="parent">
 
             <EditText
-                android:id="@+id/etMessage"
+                android:id="@+id/messageContent"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="12"
                 android:hint="Send to student" />
 
             <Button
-                android:id="@+id/button4"
+                android:id="@+id/sendButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="0.02"
-                android:onClick="sendMessage"
-                android:text="Send" />
+                android:text="Send"
+                android:onClick="sendMessage"/>
 
 
         </LinearLayout>
