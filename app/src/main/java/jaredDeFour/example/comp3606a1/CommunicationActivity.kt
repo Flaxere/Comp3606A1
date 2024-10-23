@@ -189,6 +189,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, NetworkM
         }
     }
 
+
     override fun onWiFiDirectStateChanged(isEnabled: Boolean) {
         Log.e("PLEASE", "PLEASE WORK AND END MY SUFFERING")
         var text = "There was a state change in the WiFi Direct. Currently it is "
@@ -237,9 +238,14 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, NetworkM
     fun endClass(view: View){
         wfdManager?.disconnect()
         groupCreated = false
-//        close()
+        server?.close()
+        resetUi()
         updateUI()
 
+    }
+
+    fun resetUi(){
+        studentListAdapter?.emptyList()
     }
 
     private fun updateUI(){
@@ -267,9 +273,15 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, NetworkM
     fun sendMessage(view: View){
 
         val messageContentView: EditText=findViewById(R.id.messageContent)
-        var messageContent= messageContentView.text.toString()
-        server?.sendMsg(studID, ContentModel(messageContent,"192.168.49.1"))
-        messageContentView.text.clear()
+        val messageContent= messageContentView.text.toString()
+        if(messageContent!=""){
+            server?.sendMsg(studID, ContentModel(messageContent,"192.168.49.1"))
+            messageContentView.text.clear()
+            return
+        }
+        val toast = Toast.makeText(this, "Please enter text into the field", Toast.LENGTH_SHORT)
+        toast.show()
+
 
 
     }

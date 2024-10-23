@@ -64,4 +64,11 @@ class StudentListAdapter(var comAct: CommunicationActivity, context: Context, va
 
     }
 
+    fun emptyList(){
+        val prevSize = studentList.size
+        studentList.removeAll(studentList)
+        notifyItemRangeRemoved(0,prevSize)
+
+    }
+
 }

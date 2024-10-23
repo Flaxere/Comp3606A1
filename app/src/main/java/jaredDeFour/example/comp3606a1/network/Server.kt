@@ -121,17 +121,23 @@ class Server(private val iFaceImpl: NetworkMessageInterface, val studentList: Ar
                                 try {
                                     receivedJson = clientReader.readLine()
                                     if (receivedJson != null) {
+
                                         Log.e("SERVER", "Received a message from client $it")
                                         clientContent = Gson().fromJson(receivedJson, ContentModel::class.java)
 
-                                        val decryptedMsg = ContentModel(decryptMessage(clientContent.message,aesK,aesIv),"192.168.49.1")
+                                        val decryptedMsg = ContentModel(decryptMessage(clientContent.message,aesK,aesIv),ipMap[studentID].toString())
                                         if(decryptedMsg.message != ""){
-                                            val tmpIp = clientContent.senderIp
-                                            iFaceImpl.onContent(decryptedMsg,studentID)
+                                            if(decryptedMsg.message == "||__||CLOSE_SOCKET||__||"){
+                                                iFaceImpl.removeFromList(studentID)
+                                                clientMap.remove(it)
+                                                socket.close()
+                                                break
+                                            }else{
+                                                val tmpIp = clientContent.senderIp
+                                                iFaceImpl.onContent(decryptedMsg,studentID)
+                                            }
+
                                         }
-
-//
-
 
                                     }
                                 } catch (e: Exception) {
@@ -154,9 +160,8 @@ class Server(private val iFaceImpl: NetworkMessageInterface, val studentList: Ar
 //                                }
 
                             }
-                            iFaceImpl.removeFromList(studentID)
-                            clientMap.remove(it)
-                            socket.close()
+
+                            Log.e("L","LESGOOO")
                         }else{
                             sendMessage(ContentModel("INVALID","192.168.49.1"),aesK,aesIv)
                             Log.e("ERROR","This user does not belong in the class ")
